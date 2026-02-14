@@ -310,21 +310,6 @@ export default function App() {
   }
 
   const totalPredictions = Object.keys(predictions).length;
-  const totalRemaining = TRACKED_IDS.reduce(
-    (sum, id) => sum + (teamData[id]?.remaining?.length || 0),
-    0
-  );
-  // Deduplicate: head-to-head games between tracked teams are counted once
-  const h2hMatches = new Set();
-  let uniqueRemaining = 0;
-  for (const id of TRACKED_IDS) {
-    for (const m of teamData[id]?.remaining || []) {
-      if (!h2hMatches.has(m.id)) {
-        h2hMatches.add(m.id);
-        uniqueRemaining++;
-      }
-    }
-  }
 
   return (
     <div className="app">
@@ -499,7 +484,6 @@ function TeamCard({
   position,
   qualification,
 }) {
-  const predictedCount = remaining.filter((m) => predictions[m.id]).length;
   const projectedBonus = remaining.reduce((pts, m) => {
     const pred = predictions[m.id];
     if (!pred) return pts;
