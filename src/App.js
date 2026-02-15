@@ -231,6 +231,9 @@ export default function App() {
         const teamId = row.team.id;
         const remaining = teamData[teamId]?.remaining || [];
         let bonusPoints = 0;
+        let bonusWins = 0;
+        let bonusDraws = 0;
+        let bonusLosses = 0;
 
         for (const match of remaining) {
           const pred = predictions[match.id];
@@ -239,11 +242,14 @@ export default function App() {
           const isHome = match.homeTeam?.id === teamId;
 
           if (pred === "HOME_WIN") {
-            bonusPoints += isHome ? 3 : 0;
+            if (isHome) { bonusPoints += 3; bonusWins++; }
+            else { bonusLosses++; }
           } else if (pred === "AWAY_WIN") {
-            bonusPoints += isHome ? 0 : 3;
+            if (isHome) { bonusLosses++; }
+            else { bonusPoints += 3; bonusWins++; }
           } else if (pred === "DRAW") {
             bonusPoints += 1;
+            bonusDraws++;
           }
         }
 
@@ -251,6 +257,9 @@ export default function App() {
           ...row,
           projectedPoints: row.points + bonusPoints,
           bonusPoints,
+          bonusWins,
+          bonusDraws,
+          bonusLosses,
           remainingCount: remaining.length,
         };
       })
@@ -357,8 +366,7 @@ export default function App() {
       </div>
       <div className="header-description">
         <p style={{ textAlign: 'center' }}>
-          Predict the remaining Premier League games for Chelsea, 
-          Aston Villa, Liverpool, and Manchester United.
+          Predict the remaining Premier League games for Chelsea, Manchester United, Liverpool, and Aston Villa. 
         </p>
       </div>
       </header>
@@ -418,9 +426,24 @@ export default function App() {
                   {team?.name}
                 </span>
                 <span className="col-pld">{row.playedGames}</span>
-                <span className="col-w">{row.won}</span>
-                <span className="col-d">{row.draw}</span>
-                <span className="col-l">{row.lost}</span>
+                <span className="col-w">
+                  {row.won}
+                  {row.bonusWins > 0 && (
+                    <span className="bonus-wdl bonus-w">(+{row.bonusWins})</span>
+                  )}
+                </span>
+                <span className="col-d">
+                  {row.draw}
+                  {row.bonusDraws > 0 && (
+                    <span className="bonus-wdl bonus-d">(+{row.bonusDraws})</span>
+                  )}
+                </span>
+                <span className="col-l">
+                  {row.lost}
+                  {row.bonusLosses > 0 && (
+                    <span className="bonus-wdl bonus-l">(+{row.bonusLosses})</span>
+                  )}
+                </span>
                 <span className="col-pts">{row.points}</span>
                 <span className="col-proj">
                   {row.projectedPoints}
