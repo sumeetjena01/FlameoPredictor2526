@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 // ─── SET TO false BEFORE DEPLOYING TO NETLIFY ──────────────
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // ─── MOCK DATA (real standings + fixtures as of Feb 14, 2026) ─
 const MOCK_STANDINGS = [
