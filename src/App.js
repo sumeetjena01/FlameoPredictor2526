@@ -60,7 +60,9 @@ function getTeamCrest(teamId) {
 
 // Override API shortNames
 const DISPLAY_NAME_OVERRIDES = {
-  397: "Brighton",
+  65: "Manchester City",
+  351: "Nottingham Forest",
+  397: "Brighton and Hove Albion",
   1044: "Bournemouth",
 };
 
