@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 
 // ─── SET TO false BEFORE DEPLOYING TO NETLIFY ──────────────
-const USE_MOCK_DATA = false;
+const USE_MOCK_DATA = true;
 
 // ─── MOCK DATA (real standings + fixtures as of Feb 14, 2026) ─
 const MOCK_STANDINGS = [
@@ -26,7 +26,6 @@ const MOCK_MATCHES = [
   // CHELSEA remaining
   { id: 201, utcDate: "2026-02-21T15:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 328, name: "Burnley FC", shortName: "Burnley" } },
   { id: 202, utcDate: "2026-03-01T16:30:00Z", status: "SCHEDULED", homeTeam: { id: 57, name: "Arsenal FC", shortName: "Arsenal" }, awayTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" } },
-  // 103 = AVL vs CHE (already defined above)
   { id: 204, utcDate: "2026-03-14T17:30:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 67, name: "Newcastle United FC", shortName: "Newcastle" } },
   { id: 205, utcDate: "2026-03-21T17:30:00Z", status: "SCHEDULED", homeTeam: { id: 62, name: "Everton FC", shortName: "Everton" }, awayTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" } },
   { id: 206, utcDate: "2026-04-11T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 65, name: "Manchester City FC", shortName: "Man City" } },
@@ -44,17 +43,13 @@ const MOCK_MATCHES = [
   { id: 307, utcDate: "2026-04-18T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 62, name: "Everton FC", shortName: "Everton" }, awayTeam: { id: 64, name: "Liverpool FC", shortName: "Liverpool" } },
   { id: 308, utcDate: "2026-04-25T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 64, name: "Liverpool FC", shortName: "Liverpool" }, awayTeam: { id: 354, name: "Crystal Palace FC", shortName: "Crystal Palace" } },
   { id: 309, utcDate: "2026-05-02T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" }, awayTeam: { id: 64, name: "Liverpool FC", shortName: "Liverpool" } },
-  // 210 = LIV vs CHE (already defined above)
   // Manchester United remaining
   { id: 401, utcDate: "2026-02-23T20:00:00Z", status: "SCHEDULED", homeTeam: { id: 62, name: "Everton FC", shortName: "Everton" }, awayTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" } },
   { id: 402, utcDate: "2026-03-01T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" }, awayTeam: { id: 354, name: "Crystal Palace FC", shortName: "Crystal Palace" } },
   { id: 403, utcDate: "2026-03-04T20:15:00Z", status: "SCHEDULED", homeTeam: { id: 67, name: "Newcastle United FC", shortName: "Newcastle" }, awayTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" } },
-  // 104 = MUN vs AVL (already defined above)
   { id: 405, utcDate: "2026-03-20T20:00:00Z", status: "SCHEDULED", homeTeam: { id: 1044, name: "AFC Bournemouth", shortName: "Bournemouth" }, awayTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" } },
   { id: 406, utcDate: "2026-04-11T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" }, awayTeam: { id: 341, name: "Leeds United FC", shortName: "Leeds" } },
-  // 207 = CHE vs MUN (already defined above)
   { id: 408, utcDate: "2026-04-25T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" }, awayTeam: { id: 402, name: "Brentford FC", shortName: "Brentford" } },
-  // 309 = MUN vs LIV (already defined above)
   { id: 410, utcDate: "2026-05-09T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 71, name: "Sunderland AFC", shortName: "Sunderland" }, awayTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" } },
 ];
 
@@ -129,6 +124,29 @@ export default function App() {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
+  // Theme state — default to dark, persist in localStorage
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("flameo-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("flameo-theme", theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   // Fetch data on mount
   const fetchData = useCallback(async () => {
     try {
@@ -138,11 +156,9 @@ export default function App() {
       let trackedStandings, trackedMatches;
 
       if (USE_MOCK_DATA) {
-        // Use mock data for local development
         trackedStandings = MOCK_STANDINGS;
         trackedMatches = MOCK_MATCHES;
       } else {
-        // Fetch from API (works on Netlify)
         const [standingsData, matchesData] = await Promise.all([
           fetchAPI("competitions/PL/standings"),
           fetchAPI("competitions/PL/matches?season=2025"),
@@ -169,7 +185,6 @@ export default function App() {
 
   useEffect(() => {
     fetchData();
-    // Refresh every 5 minutes
     const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -186,12 +201,14 @@ export default function App() {
       const completed = teamMatches.filter(
         (m) => m.status === "FINISHED" || m.status === "AWARDED"
       );
-      const remaining = teamMatches.filter(
-        (m) =>
-          m.status === "SCHEDULED" ||
-          m.status === "TIMED" ||
-          m.status === "POSTPONED"
-      );
+      const remaining = teamMatches
+        .filter(
+          (m) =>
+            m.status === "SCHEDULED" ||
+            m.status === "TIMED" ||
+            m.status === "POSTPONED"
+        )
+        .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
       const live = teamMatches.filter(
         (m) =>
           m.status === "IN_PLAY" ||
@@ -235,8 +252,6 @@ export default function App() {
           projectedPoints: row.points + bonusPoints,
           bonusPoints,
           remainingCount: remaining.length,
-          predictedCount: remaining.filter((m) => predictions[m.id])
-            .length,
         };
       })
       .sort((a, b) => b.projectedPoints - a.projectedPoints);
@@ -247,7 +262,7 @@ export default function App() {
     setPredictions((prev) => {
       const next = { ...prev };
       if (next[matchId] === result) {
-        delete next[matchId]; // Toggle off
+        delete next[matchId];
       } else {
         next[matchId] = result;
       }
@@ -316,6 +331,11 @@ export default function App() {
       {/* HEADER */}
       <header className="header">
         <div className="header-inner">
+          <div className="header-left">
+            <button onClick={toggleTheme} className="theme-toggle" title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}>
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+          </div>
           <div className="header-brand">
             <div className="header-icon"></div>
             <div>
@@ -336,7 +356,7 @@ export default function App() {
           </div>
       </div>
       <div className="header-description">
-        <p style={{ color: 'white', textAlign: 'center' }}>
+        <p style={{ textAlign: 'center' }}>
           Predict the remaining Premier League games for Chelsea, 
           Aston Villa, Liverpool, and Manchester United.
         </p>
@@ -374,7 +394,7 @@ export default function App() {
           </div>
 
           {projectedStandings.map((row, i) => {
-            const pos = i + 3; // Starting from 3rd place
+            const pos = i + 3;
             const qual = QUALIFICATION[pos];
             const team = TRACKED_TEAMS[row.team.id];
 
