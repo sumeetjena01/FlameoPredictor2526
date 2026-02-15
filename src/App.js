@@ -28,7 +28,7 @@ const MOCK_MATCHES = [
   { id: 202, utcDate: "2026-03-01T16:30:00Z", status: "SCHEDULED", homeTeam: { id: 57, name: "Arsenal FC", shortName: "Arsenal" }, awayTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" } },
   { id: 204, utcDate: "2026-03-14T17:30:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 67, name: "Newcastle United FC", shortName: "Newcastle" } },
   { id: 205, utcDate: "2026-03-21T17:30:00Z", status: "SCHEDULED", homeTeam: { id: 62, name: "Everton FC", shortName: "Everton" }, awayTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" } },
-  { id: 206, utcDate: "2026-04-11T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 65, name: "Manchester City FC", shortName: "Man City" } },
+  { id: 206, utcDate: "2026-04-11T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 65, name: "Manchester City FC", shortName: "Manchester City" } },
   { id: 207, utcDate: "2026-04-18T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 66, name: "Manchester United FC", shortName: "Manchester United" } },
   { id: 208, utcDate: "2026-04-25T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 397, name: "Brighton & Hove Albion FC", shortName: "Brighton" }, awayTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" } },
   { id: 209, utcDate: "2026-05-02T14:00:00Z", status: "SCHEDULED", homeTeam: { id: 61, name: "Chelsea FC", shortName: "Chelsea" }, awayTeam: { id: 351, name: "Nottingham Forest FC", shortName: "Nott'm Forest" } },
@@ -57,6 +57,17 @@ const MOCK_MATCHES = [
 function getTeamCrest(teamId) {
   return `https://crests.football-data.org/${teamId}.png`;
 }
+
+// Override API shortNames
+const DISPLAY_NAME_OVERRIDES = {
+  397: "Brighton",
+  1044: "Bournemouth",
+};
+
+function getDisplayName(team) {
+  return DISPLAY_NAME_OVERRIDES[team?.id] || team?.shortName || team?.name || "TBD";
+}
+
 
 // ─── CONFIG ─────────────────────────────────────────────────
 const TRACKED_TEAMS = {
@@ -623,9 +634,9 @@ function MatchRow({
   });
 
   // Full display name for the opponent
-  const opponentName = opponentTracked
+const opponentName = opponentTracked
     ? opponentInfo?.name
-    : (opponent?.shortName || opponent?.name || "TBD");
+    : getDisplayName(opponent);
 
   // Convert team-perspective result (W/D/L) to the actual match result (HOME_WIN/DRAW/AWAY_WIN)
   const toMatchResult = (teamResult) => {
