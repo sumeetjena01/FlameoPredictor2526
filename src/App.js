@@ -276,7 +276,7 @@ export default function App() {
           remainingCount: remaining.length,
         };
       })
-      .sort((a, b) => b.projectedPoints - a.projectedPoints);
+      .sort((a, b) => b.projectedPoints - a.projectedPoints || b.goalDifference - a.goalDifference);
   }, [standings, predictions, teamData]);
 
   // Set prediction — handle linked games
